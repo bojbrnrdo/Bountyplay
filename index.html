@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bountoplay</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="screen active">
+  <img src="logo.png" class="logo">
+  <div class="login-box">
+    <h2>Secure Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loadingScreen" class="screen">
+  <div class="loader"></div>
+  <p>Initializing System...</p>
+</div>
+
+<!-- GAME -->
+<div id="gameScreen" class="screen">
+  <img src="logo.png" class="logo">
+
+  <div class="hud">
+    <span>Score: <b id="score">0</b></span>
+    <span>Streak: <b id="streak">0</b></span>
+    <span>Time: <b id="time">10</b>s</span>
+  </div>
+
+  <div id="question" class="card"></div>
+  <div id="choices" class="choices"></div>
+
+  <div id="feedback"></div>
+
+  <button id="startBtn" onclick="startGame()">Start Game</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardScreen" class="screen">
+  <img src="logo.png" class="logo">
+
+  <h2>📊 Training Summary</h2>
+
+  <div class="card">
+    <p><b>Final Score:</b> <span id="finalScore"></span></p>
+    <p><b>Best Streak:</b> <span id="finalStreak"></span></p>
+  </div>
+
+  <button onclick="restartGame()">Play Again</button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
