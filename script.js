@@ -1,5 +1,5 @@
 // =======================================================
-// BOUNTOPLAY CYBERSECURITY GAME - FULL SYSTEM
+// BOUNTOPLAY - FINAL SYSTEM (FAIL FIX + NO FREEZE)
 // =======================================================
 
 // ================= SCREEN CONTROL =================
@@ -8,358 +8,378 @@ function showScreen(id) {
   document.getElementById(id).classList.add("active");
 }
 
-// ================= LOGIN =================
-function login() {
-  let user = document.getElementById("username").value;
-  let pass = document.getElementById("password").value;
+// ================= NAVIGATION =================
+function goToGame() {
+  showScreen("loadingScreen");
 
-  if (user && pass) {
-    showScreen("loadingScreen");
+  setTimeout(() => {
+    showScreen("gameScreen");
+    resetGameUI();
+  }, 800);
+}
 
-    setTimeout(() => {
-      showScreen("gameScreen");
-    }, 2000);
-  } else {
-    alert("Please enter credentials");
+// ================= EMAIL VALIDATION =================
+function validateEmail() {
+  let email = document.getElementById("emailInput").value.trim();
+  let error = document.getElementById("emailError");
+
+  let valid = /^[a-zA-Z0-9._%+-]+@bounty\.com\.ph$/.test(email);
+
+  if (!valid) {
+    error.style.display = "block";
+    return;
   }
+
+  error.style.display = "none";
+
+  document.getElementById("emailEntry").style.display = "none";
+  document.getElementById("gameContent").style.display = "block";
+
+  startPrimaryGame();
 }
 
-// ================= GAME CONFIG =================
-const config = {
-  timePerQuestion: 10,
-  baseScore: 10,
-  streakBonus: 2
-};
+// =======================================================
+// ================= PRIMARY GAME =================
+// =======================================================
 
-// ================= QUESTIONS =================
-const questions = [
+let emailIndex = 0;
+let primaryCompleted = false;
+let currentMode = "primary";
+let gameOver = false;
 
-/* ================= EMAIL ================= */
+const emails = [
+
 {
-type:"email",
-s:"Urgent Request – CEO",
-f:"ceo.office@company-support.com",
-m:`Hi,
+  subject: "Security Alert: Suspicious Sign-in Attempt Detected",
+  sender: `Google Security <span class="clickable">security@google-support-alert.co</span>`,
+  body: `
+    <p>Dear User,</p>
 
-I need your assistance urgently. I'm currently in a meeting.
+    <p>We detected a suspicious sign-in attempt on your Google Account from a new device.</p>
 
-Please purchase gift cards worth ₱25,000 and send codes.
+    <p>If this was not you, please review your account activity to prevent unauthorized access.</p>
 
-Confidential.
+    <p>To secure your account, please click the link below and verify your information:</p>
 
-CEO`,
-p:true,
-difficulty:"medium"
+    <p>👉 <span class="clickable">http://google-account-security-check.co</span></p>
+
+    <p>If you do not take action, your account may be temporarily restricted.</p>
+
+    <p>Thank you for your <span class="clickable">cooperatoin</span>.</p>
+
+    <br>
+
+    <p>Sincerely,<br>Google Security Team</p>
+  `,
+  malicious: 3
 },
 
 {
-type:"email",
-s:"Payroll Adjustment",
-f:"payroll@company.com",
-m:`Your salary has been updated.
+  subject: "Important: Please Review Your Latest Account Statement",
+  sender: `Security Bank <span>no-reply@securitybank.com.ph</span>`,
+  body: `
+    <p>Dear Customer,</p>
 
-Please check HR system.
+    <p>Your latest account statement from Security Bank Corporation is now available.</p>
 
-Payroll Team`,
-p:false,
-difficulty:"easy"
-},
+    <p>For your convenience, we have attached your statement for this month.</p>
 
-{
-type:"email",
-s:"Account Verification Needed",
-f:"support@paypaI.com",
-m:`We detected suspicious activity.
+    <div class="attachment clickable">
+      <div class="file-icon">📄</div>
+      <div class="file-info">
+        <b>SecurityBank_Verification_Form.pdf</b>
+        <span>PDF • 245 KB</span>
+      </div>
+    </div>
 
-Verify immediately.`,
-p:true,
-difficulty:"hard"
-},
+    <p>
+      To avoid account suspension, please download the attachment and submit your account
+      <span class="clickable">detials</span> immediately.
+    </p>
 
-{
-type:"email",
-s:"Meeting Schedule",
-f:"admin@company.com",
-m:`Meeting at 3PM today.`,
-p:false,
-difficulty:"easy"
-},
+    <p class="clickable">
+      If no action is taken, your account may be temporarily restricted.
+    </p>
 
-{
-type:"email",
-s:"Security Alert",
-f:"security@company-support.com",
-m:`Your account will be locked.
+    <p>Thank you for your trust and service.</p>
 
-Verify now.`,
-p:true,
-difficulty:"medium"
-},
+    <br>
 
-/* ================= MCQ ================= */
-{
-type:"mcq",
-q:"You receive urgent payment request from your boss. What will you do?",
-choices:[
-"Send immediately",
-"Verify via official channel",
-"Ignore",
-"Forward"
-],
-correct:1,
-difficulty:"medium"
-},
-
-{
-type:"mcq",
-q:"You leave your workstation. What will you do?",
-choices:[
-"Leave it unlocked",
-"Lock your PC",
-"Turn off monitor",
-"Ignore"
-],
-correct:1,
-difficulty:"easy"
-},
-
-{
-type:"mcq",
-q:"You find USB in office. What will you do?",
-choices:[
-"Plug it in",
-"Give to IT",
-"Take home",
-"Ignore"
-],
-correct:1,
-difficulty:"medium"
-},
-
-{
-type:"mcq",
-q:"You clicked suspicious link. What now?",
-choices:[
-"Ignore",
-"Restart PC",
-"Report to IT",
-"Continue"
-],
-correct:2,
-difficulty:"hard"
-},
-
-{
-type:"mcq",
-q:"Unknown software install request. What will you do?",
-choices:[
-"Install",
-"Check with IT",
-"Scan first",
-"Ignore"
-],
-correct:1,
-difficulty:"medium"
+    <p>Sincerely,<br>Security Bank Customer Support</p>
+  `,
+  malicious: 3
 }
 
-// 🔥 you can expand more easily
 ];
 
-// ================= SHUFFLE =================
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+// ================= STATE =================
+let score = 0;
+let mistakes = 0;
+let maxMistakes = 4;
+let found = 0;
+let totalMalicious = 3;
+
+// ================= RESET =================
+function resetGameUI() {
+  emailIndex = 0;
+  score = 0;
+  mistakes = 0;
+  found = 0;
+  primaryCompleted = false;
+  currentMode = "primary";
+  gameOver = false;
+
+  updateHUD();
+
+  document.getElementById("emailEntry").style.display = "block";
+  document.getElementById("gameContent").style.display = "none";
+}
+
+// ================= START PRIMARY =================
+function startPrimaryGame() {
+  currentMode = "primary";
+  loadEmail();
+}
+
+// ================= LOAD EMAIL =================
+function loadEmail() {
+
+  if (emailIndex >= emails.length) {
+    primaryCompleted = true;
+
+    document.querySelectorAll(".sidebar li")[1].classList.remove("locked");
+
+    setTimeout(() => {
+      switchTab("updates");
+    }, 500);
+
+    return;
+  }
+
+  let email = emails[emailIndex];
+
+  found = 0;
+  totalMalicious = email.malicious;
+
+  updateHUD();
+
+  document.getElementById("emailSubject").innerText = email.subject;
+  document.getElementById("emailSender").innerHTML = email.sender;
+  document.getElementById("emailBody").innerHTML = email.body;
+
+  activatePhishingClick();
+}
+
+// ================= CLICK SYSTEM =================
+function activatePhishingClick() {
+
+  let body = document.getElementById("emailBody");
+  let sender = document.getElementById("emailSender");
+
+  body.onclick = null;
+  sender.onclick = null;
+
+  function handleClick(e) {
+
+    if (gameOver) return;
+
+    let target = e.target;
+
+    if (target.classList.contains("clickable")) {
+
+      if (target.classList.contains("clicked")) return;
+
+      target.classList.add("clicked");
+
+      found++;
+      score += 10;
+
+      updateHUD();
+
+      if (found === totalMalicious) {
+        setTimeout(() => {
+          emailIndex++;
+          loadEmail();
+        }, 800);
+      }
+
+    } else {
+
+      mistakes++;
+
+      target.classList.add("wrong");
+
+      setTimeout(() => target.classList.remove("wrong"), 400);
+
+      updateHUD();
+
+      if (mistakes === maxMistakes) {
+        gameOver = true;
+
+        highlightMissed();
+
+        setTimeout(() => {
+          endGame();
+        }, 800);
+      }
+    }
+  }
+
+  body.onclick = handleClick;
+  sender.onclick = handleClick;
+}
+
+// ================= HIGHLIGHT =================
+function highlightMissed() {
+  document.querySelectorAll(".clickable").forEach(el => {
+    if (!el.classList.contains("clicked")) {
+      el.style.outline = "2px solid yellow";
+    }
+  });
+}
+
+// =======================================================
+// ================= UPDATES GAME =================
+// =======================================================
+
+let scenarioIndex = 0;
+
+const scenarios = [
+{
+  question: "You found a USB in the office hallway. What will you do?",
+  choices: ["Plug it in", "Give it to IT", "Take it home", "Ignore"],
+  correct: 1
+},
+{
+  question: "Your coworker asks for your password. What will you do?",
+  choices: ["Share it", "Decline and report", "Write it down", "Ignore"],
+  correct: 1
+},
+{
+  question: "You leave your workstation. What should you do?",
+  choices: ["Leave it open", "Lock your PC", "Turn off monitor", "Ignore"],
+  correct: 1
+}
+];
+
+// ================= TAB SWITCH =================
+function switchTab(tab) {
+
+  if (tab === "updates" && !primaryCompleted) return;
+
+  document.querySelectorAll(".sidebar li").forEach(li => li.classList.remove("active"));
+
+  if (tab === "updates") {
+    currentMode = "updates";
+    document.querySelectorAll(".sidebar li")[1].classList.add("active");
+
+    startUpdatesGame();
   }
 }
 
-// ================= STATE =================
-let current = 0;
-let score = 0;
-let streak = 0;
-let correctAnswers = 0;
-let timer;
-let timeLeft = config.timePerQuestion;
-let playing = false;
-let locked = false;
-
-// ================= START GAME =================
-function startGame() {
-  // RESET STATE
-  current = 0;
-  score = 0;
-  streak = 0;
-  correctAnswers = 0;
-  playing = true;
-  locked = false;
-
-  shuffle(questions);
-
-  // RESET UI
-  document.getElementById("score").innerText = 0;
-  document.getElementById("streak").innerText = 0;
-  document.getElementById("time").innerText = config.timePerQuestion;
-  document.getElementById("feedback").innerText = "";
-
-  document.getElementById("startBtn").style.display = "none";
-
-  nextQuestion();
+// ================= START =================
+function startUpdatesGame() {
+  scenarioIndex = 0;
+  loadScenario();
 }
 
-// ================= LOAD QUESTION =================
-function nextQuestion() {
-  clearInterval(timer);
-  locked = false;
+// ================= LOAD =================
+function loadScenario() {
 
-  if (current >= questions.length) {
+  if (scenarioIndex >= scenarios.length) {
     endGame();
     return;
   }
 
-  let q = questions[current];
+  let s = scenarios[scenarioIndex];
 
-  if (q.type === "email") {
-    renderEmail(q);
-  } else {
-    renderMCQ(q);
-  }
+  document.getElementById("scenarioText").innerText = s.question;
 
-  startTimer();
-}
-
-// ================= RENDER =================
-function renderEmail(q) {
-  document.getElementById("question").innerHTML =
-    `<h3>${q.s}</h3><p><b>From:</b> ${q.f}</p><p>${q.m}</p>`;
-
-  document.getElementById("choices").innerHTML =
-    `<button onclick="answer(true)">🚨 Phishing</button>
-     <button onclick="answer(false)">✅ Legit</button>`;
-}
-
-function renderMCQ(q) {
   let html = "";
-  q.choices.forEach((c,i)=>{
-    html += `<button onclick="answer(${i})">${c}</button>`;
+
+  s.choices.forEach((c, i) => {
+    html += `<button onclick="answerScenario(${i})">${c}</button>`;
   });
 
-  document.getElementById("question").innerHTML = `<h3>${q.q}</h3>`;
   document.getElementById("choices").innerHTML = html;
+
+  updateHUD();
 }
 
 // ================= ANSWER =================
-function answer(choice) {
-  if (!playing || locked) return;
+function answerScenario(choice) {
 
-  locked = true;
-  clearInterval(timer);
+  if (gameOver) return;
 
-  let q = questions[current];
-  let buttons = document.querySelectorAll(".choices button");
+  let s = scenarios[scenarioIndex];
+  let buttons = document.querySelectorAll("#choices button");
 
-  buttons.forEach(btn => btn.classList.add("disabled"));
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
 
-  let correct = false;
+    if (i === s.correct) btn.classList.add("clicked");
+    if (i === choice && i !== s.correct) btn.classList.add("wrong");
+  });
 
-  if (q.type === "email") {
-    buttons.forEach((btn, index) => {
-      let val = index === 0;
-
-      if (val === q.p) btn.classList.add("correct");
-      if (val === choice && val !== q.p) btn.classList.add("wrong");
-    });
-
-    correct = (choice === q.p);
-
+  if (choice === s.correct) {
+    score += 10;
   } else {
-    buttons.forEach((btn, index) => {
-      if (index === q.correct) btn.classList.add("correct");
-      if (index === choice && index !== q.correct) btn.classList.add("wrong");
-    });
-
-    correct = (choice === q.correct);
-  }
-
-  // SCORE LOGIC
-  if (correct) {
-    correctAnswers++;
-    streak++;
-    let points = config.baseScore + (streak * config.streakBonus);
-    score += points;
-  } else {
-    streak = 0;
+    mistakes++;
   }
 
   updateHUD();
 
-  current++;
+  if (mistakes === maxMistakes) {
+    gameOver = true;
 
-  setTimeout(nextQuestion, 1000);
-}
+    setTimeout(() => {
+      endGame();
+    }, 800);
 
-// ================= TIMER =================
-function startTimer() {
-  clearInterval(timer);
-
-  timeLeft = config.timePerQuestion;
-  document.getElementById("time").innerText = timeLeft;
-
-  timer = setInterval(() => {
-    timeLeft--;
-    document.getElementById("time").innerText = timeLeft;
-
-    if (timeLeft <= 0) {
-      clearInterval(timer);
-
-      if (!locked) {
-        locked = true;
-        streak = 0;
-        current++;
-        setTimeout(nextQuestion, 800);
-      }
-    }
-  }, 1000);
-}
-
-// ================= HUD =================
-function updateHUD() {
-  document.getElementById("score").innerText = score;
-  document.getElementById("streak").innerText = streak;
-}
-
-// ================= PERFORMANCE =================
-function calculateAccuracy() {
-  return Math.round((correctAnswers / questions.length) * 100);
-}
-
-function getRiskLevel(acc) {
-  if (acc >= 80) return "LOW RISK ✅";
-  if (acc >= 50) return "MEDIUM RISK ⚠️";
-  return "HIGH RISK 🚨";
-}
-
-// ================= END GAME =================
-function endGame() {
-  playing = false;
-  clearInterval(timer);
-
-  let accuracy = calculateAccuracy();
-  let risk = getRiskLevel(accuracy);
-
-  document.getElementById("finalScore").innerText = score;
-  document.getElementById("finalStreak").innerText = streak;
-
-  // 🔥 ADD THESE IN HTML if you want
-  if (document.getElementById("accuracy")) {
-    document.getElementById("accuracy").innerText = accuracy + "%";
-    document.getElementById("risk").innerText = risk;
+    return;
   }
 
-  showScreen("dashboardScreen");
+  setTimeout(() => {
+    scenarioIndex++;
+    loadScenario();
+  }, 900);
 }
 
-// ================= RESTART =================
-function restartGame() {
-  showScreen("gameScreen");
-  startGame();
+// =======================================================
+// ================= HUD =================
+// =======================================================
+
+function updateHUD() {
+  document.getElementById("score").innerText = score;
+  document.getElementById("mistakes").innerText = `${mistakes}/${maxMistakes}`;
+
+  if (currentMode === "primary") {
+    document.getElementById("streak").innerText = `${found}/${totalMalicious}`;
+  } else {
+    document.getElementById("streak").innerText = "-";
+  }
+}
+
+// =======================================================
+// ================= END =================
+// =======================================================
+
+function endGame() {
+
+  let totalPossible = emails.length * 3 + scenarios.length;
+  let totalFound = score / 10;
+
+  let accuracy = Math.round((totalFound / totalPossible) * 100);
+
+  let risk =
+    accuracy >= 80 ? "LOW RISK ✅" :
+    accuracy >= 50 ? "MEDIUM RISK ⚠️" :
+    "CRITICAL RISK 🚨";
+
+  document.getElementById("finalScore").innerText = score;
+  document.getElementById("accuracy").innerText = accuracy + "%";
+  document.getElementById("risk").innerText = risk;
+  document.getElementById("finalStreak").innerText = "-";
+
+  showScreen("dashboardScreen");
 }
