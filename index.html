@@ -2,58 +2,144 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Bountoplay</title>
+  <title>Bountyplay</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="loginScreen" class="screen active">
+<!-- ================= HOME ================= -->
+<div id="homeScreen" class="screen active">
+
   <img src="logo.png" class="logo">
-  <div class="login-box">
-    <h2>Secure Login</h2>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="login()">Login</button>
+
+  <div class="card" style="text-align:center;">
+    <h2>Test your Awareness</h2>
+
+    <p>
+      Analyze the email carefully and identify malicious elements.
+      Click suspicious parts to investigate.
+    </p>
+
+    <button onclick="goToGame()">Start Simulation</button>
   </div>
+
 </div>
 
-<!-- LOADING -->
+<!-- ================= LOADING ================= -->
 <div id="loadingScreen" class="screen">
   <div class="loader"></div>
-  <p>Initializing System...</p>
+  <p>Initializing Secure Environment...</p>
 </div>
 
-<!-- GAME -->
+<!-- ================= GAME ================= -->
 <div id="gameScreen" class="screen">
-  <img src="logo.png" class="logo">
 
-  <div class="hud">
-    <span>Score: <b id="score">0</b></span>
-    <span>Streak: <b id="streak">0</b></span>
-    <span>Time: <b id="time">10</b>s</span>
+  <!-- EMAIL ENTRY -->
+  <div id="emailEntry" class="card" style="text-align:center;">
+    <h3>Enter Company Email</h3>
+
+    <input type="text" id="emailInput" placeholder="name@bounty.com.ph">
+
+    <p id="emailError" style="color:#ef4444; display:none;">
+      Invalid email. Use @bounty.com.ph
+    </p>
+
+    <button onclick="validateEmail()">Enter Simulation</button>
   </div>
 
-  <div id="question" class="card"></div>
-  <div id="choices" class="choices"></div>
+  <!-- MAIN GAME UI -->
+  <div id="gameContent" style="display:none; width:100%; height:100%;">
 
-  <div id="feedback"></div>
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <img src="logo.png" class="logo-small">
 
-  <button id="startBtn" onclick="startGame()">Start Game</button>
+      <div class="hud">
+        <span>Score: <b id="score">0</b></span>
+        <span>Find: <b id="streak">0/3</b></span>
+        <span>Mistakes: <b id="mistakes">0/4</b></span>
+      </div>
+    </div>
+
+    <!-- MAIL LAYOUT -->
+    <div class="mail-layout">
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <h3>Inbox</h3>
+        <ul>
+          <li class="active" onclick="switchTab('primary')">Primary</li>
+          <li onclick="switchTab('updates')">Updates</li>
+          <li>Spam</li>
+        </ul>
+      </div>
+
+      <!-- EMAIL / GAME CONTENT -->
+      <div class="mail-content">
+
+        <!-- ================= PRIMARY GAME (PHISHING) ================= -->
+        <div id="primaryGame">
+
+          <!-- HEADER -->
+          <div class="mail-header">
+            <h2 id="emailSubject"></h2>
+            <p>
+              From:
+              <span id="emailSender"></span>
+            </p>
+          </div>
+
+          <!-- BODY -->
+          <div id="emailBody" class="mail-body">
+            <!-- Injected via JS -->
+          </div>
+
+        </div>
+
+        <!-- ================= UPDATES GAME (HUMAN ERROR) ================= -->
+        <div id="updatesGame" style="display:none;">
+
+          <div class="mail-header">
+            <h2>Human Firewall Training</h2>
+            <p>Choose the safest action in each situation</p>
+          </div>
+
+          <div class="mail-body">
+
+            <h3 id="scenarioText"></h3>
+
+            <div id="choices" style="margin-top:20px; display:flex; flex-direction:column; gap:10px;"></div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
 </div>
 
-<!-- DASHBOARD -->
+<!-- ================= DASHBOARD ================= -->
 <div id="dashboardScreen" class="screen">
+
   <img src="logo.png" class="logo">
 
-  <h2>📊 Training Summary</h2>
+  <h2>Simulation Completed</h2>
 
   <div class="card">
     <p><b>Final Score:</b> <span id="finalScore"></span></p>
-    <p><b>Best Streak:</b> <span id="finalStreak"></span></p>
+    <p><b>Findings:</b> <span id="finalStreak"></span></p>
+    <p><b>Accuracy:</b> <span id="accuracy"></span></p>
+    <p><b>Risk Level:</b> <span id="risk"></span></p>
   </div>
 
-  <button onclick="restartGame()">Play Again</button>
+  <p style="margin-top:10px;">
+    You have completed the cybersecurity awareness training.
+  </p>
+
 </div>
 
 <script src="script.js"></script>
